@@ -45,37 +45,15 @@ void init_zombie_simulation(int num_humans, int num_zombies, int num_immune, int
  * Synchronize boundary particles between ranks.
  */
 void synchronize_particles(int rank, int size) {
-    MPI_Status status;
-    int left_rank = (rank == 0) ? size - 1 : rank - 1;
-    int right_rank = (rank == size - 1) ? 0 : rank + 1;
+    int counts[size], displs[size];
 
-    int particles_per_rank = sph_num_particles / size;
-    int boundary_count = particles_per_rank / 10; // Assuming 10% are boundary particles
-
-    // Temporary arrays for sending/receiving boundary particles
-    Particle *send_left = &sph_particles[0];
-    Particle *send_right = &sph_particles[sph_num_particles - boundary_count];
-    Particle *recv_left = (Particle *)malloc(boundary_count * sizeof(Particle));
-    Particle *recv_right = (Particle *)malloc(boundary_count * sizeof(Particle));
-
-    // Send and receive boundary particles
-    MPI_Sendrecv(send_left, boundary_count, MPI_PARTICLES, left_rank, 0,
-                 recv_right, boundary_count, MPI_PARTICLES, right_rank, 0,
-                 MPI_COMM_WORLD, &status);
-    MPI_Sendrecv(send_right, boundary_count, MPI_PARTICLES, right_rank, 1,
-                 recv_left, boundary_count, MPI_PARTICLES, left_rank, 1,
-                 MPI_COMM_WORLD, &status);
-
-    // Merge received boundary particles into the local array
-    // Note: In production, you'll need better handling to avoid overwriting or duplicating particles
-    for (int i = 0; i < boundary_count; i++) {
-        sph_particles[sph_num_particles++] = recv_left[i];
-        sph_particles[sph_num_particles++] = recv_right[i];
-    }
-
-    free(recv_left);
-    free(recv_right);
+    MPI_Allgatherv(
+        &sph_particles[0], sph_num_particles, MPI_PARTICLES,
+        sph_particles, counts, displs, MPI_PARTICLES,
+        MPI_COMM_WORLD
+    );
 }
+
 
 void move_zombies() {
     for (int i = 0; i < sph_num_particles; i++) {
@@ -200,7 +178,8 @@ void compute_density_and_pressure(int rank, int size) {
         p_i->p = SPH_GAS_CONSTANT * (p_i->rho - SPH_REST_DENSITY);
     }
 
-    synchronize_particles(rank, size); // Synchronize boundary particles after density update
+    // Synchronize particles after density update
+    synchronize_particles(rank, size);
 }
 
 
@@ -215,7 +194,7 @@ int is_in_domain(float x, float y) {
 /**
  * Compute forces for each particle.
  */
-void compute_sph_forces(int rank, int size) {
+vvoid compute_sph_forces(int rank, int size) {
     const float spiky_gradient = -10.0f / (M_PI * pow(SPH_KERNEL_RADIUS, 5.0f));
     const float visc_laplacian = 40.0f / (M_PI * pow(SPH_KERNEL_RADIUS, 5.0f));
     const float small_eps = 1e-6f;
@@ -254,7 +233,8 @@ void compute_sph_forces(int rank, int size) {
         p_i->fy = pressure_force_y + viscosity_force_y;
     }
 
-    synchronize_particles(rank, size); // Synchronize particles after forces update
+    // Synchronize particles after forces update
+    synchronize_particles(rank, size);
 }
 
 
@@ -280,7 +260,8 @@ void integrate_sph(int rank, int size) {
         if (p->y > VIEW_HEIGHT - SPH_KERNEL_RADIUS) p->y = VIEW_HEIGHT - SPH_KERNEL_RADIUS;
     }
 
-    synchronize_particles(rank, size); // Synchronize particles after integration
+    // Synchronize particles after integration
+    synchronize_particles(rank, size);
 }
 
 

@@ -59,11 +59,11 @@ void synchronize_particles(int rank, int size) {
     Particle *recv_right = (Particle *)malloc(boundary_count * sizeof(Particle));
 
     // Send and receive boundary particles
-    MPI_Sendrecv(send_left, boundary_count, MPI_PARTICLE, left_rank, 0,
-                 recv_right, boundary_count, MPI_PARTICLE, right_rank, 0,
+    MPI_Sendrecv(send_left, boundary_count, MPI_PARTICLES, left_rank, 0,
+                 recv_right, boundary_count, MPI_PARTICLES, right_rank, 0,
                  MPI_COMM_WORLD, &status);
-    MPI_Sendrecv(send_right, boundary_count, MPI_PARTICLE, right_rank, 1,
-                 recv_left, boundary_count, MPI_PARTICLE, left_rank, 1,
+    MPI_Sendrecv(send_right, boundary_count, MPI_PARTICLES, right_rank, 1,
+                 recv_left, boundary_count, MPI_PARTICLES, left_rank, 1,
                  MPI_COMM_WORLD, &status);
 
     // Merge received boundary particles into the local array

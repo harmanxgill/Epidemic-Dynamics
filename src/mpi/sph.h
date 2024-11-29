@@ -34,6 +34,6 @@ void move_zombies(void);                                 // Move zombies toward 
 void handle_collisions(void);                            // Handle collisions between particles
 int is_in_domain(float x, float y);                      // Check if a particle is in the domain
 void immune_attack(void);
-voi synchronize_particles(int rank, int size);
+void synchronize_particles(int rank, int size);
 
 #endif // SPH_H

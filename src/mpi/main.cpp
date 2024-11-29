@@ -9,6 +9,8 @@ int main(int argc, char **argv) {
     // Initialize MPI
     MPI_Init(&argc, &argv);
 
+    MPI_Datatype MPI_PARTICLES;
+
     int rank, size;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
@@ -35,7 +37,7 @@ int main(int argc, char **argv) {
         }
 
         // Broadcast particles to all processes
-        MPI_Bcast(sph_particles, total_particles, MPI_PARTICLE, 0, MPI_COMM_WORLD);
+        MPI_Bcast(sph_particles, total_particles, MPI_PARTICLES, 0, MPI_COMM_WORLD);
 
         // Start timing
         clock_t start_time = clock();

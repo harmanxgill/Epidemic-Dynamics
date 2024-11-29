@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <mpi.h>
 #include <stddef.h>
+#include <particle.h>
 
 /* Global Variables */
 Particle *sph_particles = NULL;

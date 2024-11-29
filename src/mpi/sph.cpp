@@ -2,10 +2,28 @@
 #include <math.h>
 #include <stdio.h>
 #include <mpi.h>
+#include <stddef.h>
 
 /* Global Variables */
 Particle *sph_particles = NULL;
 int sph_num_particles = 0;
+
+void create_mpi_particle_type(MPI_Datatype *mpi_particles) {
+    Particle sample; // A sample particle to calculate offsets
+    int num_fields = 5;
+    int block_lengths[5] = {1, 1, 1, 1, 1};
+    MPI_Aint offsets[5];
+    MPI_Datatype types[5] = {MPI_FLOAT, MPI_FLOAT, MPI_FLOAT, MPI_FLOAT, MPI_INT};
+
+    offsets[0] = offsetof(Particle, x);
+    offsets[1] = offsetof(Particle, y);
+    offsets[2] = offsetof(Particle, vx);
+    offsets[3] = offsetof(Particle, vy);
+    offsets[4] = offsetof(Particle, type);
+
+    MPI_Type_create_struct(num_fields, block_lengths, offsets, types, mpi_particles);
+    MPI_Type_commit(mpi_particles);
+}
 
 /**
  * Initialize the SPH system with random distribution of humans, zombies, and immune particles.

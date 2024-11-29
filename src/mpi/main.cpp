@@ -13,6 +13,9 @@ int main(int argc, char **argv) {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
+    MPI_Datatype mpi_particles;
+    create_mpi_particle_type(&mpi_particles);
+
     // Allocate memory for particles
     sph_particles = (Particle*)malloc(MAX_PARTICLES * sizeof(Particle));
     if (!sph_particles) {
@@ -27,7 +30,7 @@ int main(int argc, char **argv) {
         int total_particles = num_humans + num_zombies + num_immune;
 
         // Broadcast total number of particles
-        MPI_Bcast(&total_particles, 1, MPI_INT, 0, MPI_COMM_WORLD);
+        MPI_Bcast(&total_particles, 1, mpi_particles, 0, MPI_COMM_WORLD);
 
         // Initialize particles on rank 0
         if (rank == 0) {

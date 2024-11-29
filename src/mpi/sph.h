@@ -28,12 +28,13 @@ void init_zombie_simulation(int humans, int zombies, int immune, int rank, int s
 void compute_density_and_pressure(int rank, int size);                 // SPH density and pressure computation
 void compute_sph_forces(int rank, int size);                           // Compute SPH forces
 void integrate_sph(int rank, int size);                                // Integrate positions and velocities
-void update_sph(void);                                   // Update the SPH system
+void update_sph(int rank, int size);                                   // Update the SPH system
 void move_humans(void);                                  // Move humans based on nearby zombies
 void move_zombies(void);                                 // Move zombies toward humans
 void handle_collisions(void);                            // Handle collisions between particles
 int is_in_domain(float x, float y);                      // Check if a particle is in the domain
 void immune_attack(void);
 void synchronize_particles(int rank, int size);
+void create_mpi_particle_type(MPI_Datatype *mpi_particles);
 
 #endif // SPH_H

@@ -31,10 +31,10 @@ int main(int argc, char **argv) {
 
         // Initialize particles on rank 0
         if (rank == 0) {
-            init_zombie_simulation(num_humans, num_zombies, num_immune);
+            init_zombie_simulation(num_humans, num_zombies, num_immune, rank, size);
         }
 
-        / Broadcast particles to all processes
+        // Broadcast particles to all processes
         MPI_Bcast(sph_particles, total_particles, MPI_PARTICLE, 0, MPI_COMM_WORLD);
 
         // Start timing

@@ -3,6 +3,7 @@
 #include "sph.h"
 #include <time.h>
 #include <omp.h>
+#include <chrono>
 
 int main(int argc, char **argv) {
     srand(1234);
@@ -13,9 +14,9 @@ int main(int argc, char **argv) {
     }
 
 
-        int num_humans = 500000;  // Adjust particle counts for scaling analysis
-        int num_zombies = 500;
-        int num_immune = 500;
+        int num_humans = 50;  // Adjust particle counts for scaling analysis
+        int num_zombies = 50;
+        int num_immune = 50;
 
         // Initialize simulation
         init_zombie_simulation(num_humans, num_zombies, num_immune);

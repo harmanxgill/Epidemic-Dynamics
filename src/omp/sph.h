@@ -13,19 +13,11 @@ const float SPH_BOUNDARY_DAMPING = -0.5f;                // Boundary damping
 const float SPH_MASS = 2.5f;                             // Particle mass
 const float SPH_REST_DENSITY = 300.0f;                   // Rest density
 
-#ifdef GUI
-const int MAX_PARTICLES = 5000;                          // Max particles for GUI
-#else
-const int MAX_PARTICLES = 1000000;                         // Max particles for non-GUI
-#endif
+const int MAX_PARTICLES = 1000000;                         // Max particles for 
 
-#ifndef GUI
-#define VIEW_WIDTH 3000  // Larger width for non-GUI
-#define VIEW_HEIGHT 2000 // Larger height for non-GUI
-#else
-#define VIEW_WIDTH 1024  // Standard width for GUI
-#define VIEW_HEIGHT 768  // Standard height for GUI
-#endif
+const int BIG_VIEW_WIDTH = 1024;  // Larger width for non-GUI
+const int BIG_VIEW_HEIGHT =  768; // Larger height for non-GUI
+
 
 // Global Variables
 extern Particle *sph_particles;                          // Array of SPH particles

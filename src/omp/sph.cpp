@@ -29,8 +29,8 @@ void init_zombie_simulation(int num_humans, int num_zombies, int num_immune) {
         int humans_start = (num_humans * thread_num) / num_threads;
         int humans_end = (num_humans * (thread_num + 1)) / num_threads;
         for (int i = humans_start; i < humans_end; i++) {
-            float x = (rand() / (float)RAND_MAX) * (VIEW_WIDTH - 2 * SPH_KERNEL_RADIUS) + SPH_KERNEL_RADIUS;
-            float y = (rand() / (float)RAND_MAX) * (VIEW_HEIGHT - 2 * SPH_KERNEL_RADIUS) + SPH_KERNEL_RADIUS;
+            float x = (rand() / (float)RAND_MAX) * (BIG_VIEW_WIDTH - 2 * SPH_KERNEL_RADIUS) + SPH_KERNEL_RADIUS;
+            float y = (rand() / (float)RAND_MAX) * (BIG_VIEW_HEIGHT - 2 * SPH_KERNEL_RADIUS) + SPH_KERNEL_RADIUS;
             init_particle(&sph_particles[i], x, y, HUMAN);
             sph_particles[i].type = HUMAN;
         }
@@ -38,8 +38,8 @@ void init_zombie_simulation(int num_humans, int num_zombies, int num_immune) {
         int zombies_start = num_humans + (num_zombies * thread_num) / num_threads;
         int zombies_end = num_humans + (num_zombies * (thread_num + 1)) / num_threads;
         for (int i = zombies_start; i < zombies_end; i++) {
-            float x = (rand() / (float)RAND_MAX) * (VIEW_WIDTH - 2 * SPH_KERNEL_RADIUS) + SPH_KERNEL_RADIUS;
-            float y = (rand() / (float)RAND_MAX) * (VIEW_HEIGHT - 2 * SPH_KERNEL_RADIUS) + SPH_KERNEL_RADIUS;
+            float x = (rand() / (float)RAND_MAX) * (BIG_VIEW_WIDTH - 2 * SPH_KERNEL_RADIUS) + SPH_KERNEL_RADIUS;
+            float y = (rand() / (float)RAND_MAX) * (BIG_VIEW_HEIGHT - 2 * SPH_KERNEL_RADIUS) + SPH_KERNEL_RADIUS;
             init_particle(&sph_particles[i], x, y, ZOMBIE);
             sph_particles[i].type = ZOMBIE;
         }
@@ -47,8 +47,8 @@ void init_zombie_simulation(int num_humans, int num_zombies, int num_immune) {
         int immune_start = num_humans + num_zombies + (num_immune * thread_num) / num_threads;
         int immune_end = num_humans + num_zombies + (num_immune * (thread_num + 1)) / num_threads;
         for (int i = immune_start; i < immune_end; i++) {
-            float x = (rand() / (float)RAND_MAX) * (VIEW_WIDTH - 2 * SPH_KERNEL_RADIUS) + SPH_KERNEL_RADIUS;
-            float y = (rand() / (float)RAND_MAX) * (VIEW_HEIGHT - 2 * SPH_KERNEL_RADIUS) + SPH_KERNEL_RADIUS;
+            float x = (rand() / (float)RAND_MAX) * (BIG_VIEW_WIDTH - 2 * SPH_KERNEL_RADIUS) + SPH_KERNEL_RADIUS;
+            float y = (rand() / (float)RAND_MAX) * (BIG_VIEW_HEIGHT - 2 * SPH_KERNEL_RADIUS) + SPH_KERNEL_RADIUS;
             init_particle(&sph_particles[i], x, y, IMMUNE);
             sph_particles[i].type = IMMUNE;
         }
@@ -65,7 +65,7 @@ void move_zombies() {
     for (int i = 0; i < sph_num_particles; i++) {
         if (sph_particles[i].type == ZOMBIE) {
             Particle *zombie = &sph_particles[i];
-            float closest_dist = VIEW_WIDTH * VIEW_HEIGHT;
+            float closest_dist = BIG_VIEW_WIDTH * BIG_VIEW_HEIGHT;
             Particle *closest_human = NULL;
 
             // Find the nearest human
@@ -99,7 +99,7 @@ void move_immune() {
     for (int i = 0; i < sph_num_particles; i++) {
         if (sph_particles[i].type == IMMUNE) {
             Particle *immune = &sph_particles[i];
-            float closest_dist = VIEW_WIDTH * VIEW_HEIGHT;
+            float closest_dist = BIG_VIEW_WIDTH * BIG_VIEW_HEIGHT;
             Particle *closest_human = NULL;
 
             // Find the nearest human
@@ -175,7 +175,7 @@ void compute_density_and_pressure(void) {
     }
 
     // Parallelize density computation using reduction
-#pragma omp parallel default(none) shared(sph_num_particles, sph_particles, rho, h_squared, poly6_constant)
+#pragma omp parallel default(none) shared(sph_num_particles, sph_particles, rho)
     {
         #pragma omp for reduction(+:rho[:sph_num_particles]) collapse(2)
         for (int i = 0; i < sph_num_particles; i++) {
@@ -211,9 +211,9 @@ void compute_density_and_pressure(void) {
 
 
 int is_in_domain(float x, float y) {
-    return ((x < VIEW_WIDTH - SPH_KERNEL_RADIUS) &&
+    return ((x < BIG_VIEW_WIDTH - SPH_KERNEL_RADIUS) &&
             (x > SPH_KERNEL_RADIUS) &&
-            (y < VIEW_HEIGHT - SPH_KERNEL_RADIUS) &&
+            (y < BIG_VIEW_HEIGHT - SPH_KERNEL_RADIUS) &&
             (y > SPH_KERNEL_RADIUS));
 }
 
@@ -236,7 +236,7 @@ void compute_sph_forces(void) {
         exit(EXIT_FAILURE);
     }
 
-#pragma omp parallel default(none) shared(sph_particles, sph_num_particles, pressure_force_x, pressure_force_y, viscosity_force_x, viscosity_force_y, spiky_gradient, visc_laplacian, small_eps)
+#pragma omp parallel default(none) shared(sph_particles, sph_num_particles, pressure_force_x, pressure_force_y, viscosity_force_x, viscosity_force_y)
     {
 #pragma omp for reduction(+:pressure_force_x[:sph_num_particles], pressure_force_y[:sph_num_particles], viscosity_force_x[:sph_num_particles], viscosity_force_y[:sph_num_particles]) collapse(2)
         for (int i = 0; i < sph_num_particles; i++) {
@@ -303,7 +303,7 @@ void compute_sph_forces(void) {
  */
 void integrate_sph(void) {
 
-    #pragma omp parallel for default(none) shared(sph_num_particles, sph_particles, DT, EPS, SPH_BOUNDARY_DAMPING, SPH_KERNEL_RADIUS, VIEW_WIDTH, VIEW_HEIGHT)
+    #pragma omp parallel for default(none) shared(sph_num_particles, sph_particles)
     for (int i = 0; i < sph_num_particles; i++) {
         Particle *p = &sph_particles[i];
 
@@ -320,17 +320,17 @@ void integrate_sph(void) {
             p->vx *= SPH_BOUNDARY_DAMPING;
             p->x = SPH_KERNEL_RADIUS;
         }
-        if (p->x > VIEW_WIDTH - SPH_KERNEL_RADIUS) {
+        if (p->x > BIG_VIEW_WIDTH - SPH_KERNEL_RADIUS) {
             p->vx *= SPH_BOUNDARY_DAMPING;
-            p->x = VIEW_WIDTH - SPH_KERNEL_RADIUS;
+            p->x = BIG_VIEW_WIDTH - SPH_KERNEL_RADIUS;
         }
         if (p->y < SPH_KERNEL_RADIUS) {
             p->vy *= SPH_BOUNDARY_DAMPING;
             p->y = SPH_KERNEL_RADIUS;
         }
-        if (p->y > VIEW_HEIGHT - SPH_KERNEL_RADIUS) {
+        if (p->y > BIG_VIEW_HEIGHT - SPH_KERNEL_RADIUS) {
             p->vy *= SPH_BOUNDARY_DAMPING;
-            p->y = VIEW_HEIGHT - SPH_KERNEL_RADIUS;
+            p->y = BIG_VIEW_HEIGHT - SPH_KERNEL_RADIUS;
         }
     }
 }
@@ -340,7 +340,7 @@ void integrate_sph(void) {
 void handle_collisions(void) {
     const float kernel_radius_squared = SPH_KERNEL_RADIUS * SPH_KERNEL_RADIUS;
 
-#pragma omp parallel for default(none) shared(sph_num_particles, sph_particles, kernel_radius_squared)
+#pragma omp parallel for default(none) shared(sph_num_particles, sph_particles)
     for (int i = 0; i < sph_num_particles; i++) {
         if (sph_particles[i].type == ZOMBIE) {
             for (int j = 0; j < sph_num_particles; j++) {

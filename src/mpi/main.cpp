@@ -1,81 +1,72 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "sph.h"
-#ifdef GUI
-#include "visualization.h"
-#include <GL/glut.h>
-#endif
-#include <mpi.h>
+#include <time.h>
+#include <omp.h>
+#include <chrono>
 
 int main(int argc, char **argv) {
-    int comm_size, rank;
-    int n_particles = DAM_PARTICLES;
-    int n_steps = 50;
-
-    // Initialize MPI
-    MPI_Init(&argc, &argv);
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
-
-    // Allocate memory for particles
-    sph_particles = (Particle *)malloc(MAX_PARTICLES * sizeof(Particle));
+    srand(1234);
+    sph_particles = (Particle*)malloc(MAX_PARTICLES * sizeof(Particle));
     if (!sph_particles) {
         fprintf(stderr, "Memory allocation failed.\n");
-        MPI_Finalize();
         return EXIT_FAILURE;
     }
 
-    // Initialize particles on the root process
-    if (rank == 0) {
-        init_sph(n_particles);
-    }
 
-    // Broadcast particles to all processes
-    MPI_Bcast(sph_particles, MAX_PARTICLES, mpi_particle_type, 0, MPI_COMM_WORLD);
-    MPI_Bcast(&n_particles, 1, MPI_INT, 0, MPI_COMM_WORLD);
+        int num_humans = 50;  // Adjust particle counts for scaling analysis
+        int num_zombies = 50;
+        int num_immune = 50;
 
-#ifdef GUI
-    if (rank == 0) { // Only the root process handles GUI
-        glutInit(&argc, argv);
-        glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
-        glutInitWindowSize(1024, 768);
-        glutCreateWindow("SPH Simulation");
-        glutDisplayFunc(render);
-        glutIdleFunc(update_sph);
-        glutKeyboardFunc(keyboard_handler);
-        glutMouseFunc(mouse_handler);
-        init_gl();
-        glutMainLoop();
-    }
-#else
-    // Non-GUI distributed computation
-    for (int step = 0; step < n_steps; step++) {
+        // Initialize simulation
+        init_zombie_simulation(num_humans, num_zombies, num_immune);
+
+        // Start timing
+        clock_t start_time = clock();
+
+        int step = 0; // Step counter
+    while (1) {
         update_sph();
 
-        // Gather particles' updates across all processes
-        MPI_Allgatherv(
-            &sph_particles[displs[rank]],
-            counts[rank],
-            mpi_particle_type,
-            sph_particles,
-            counts,
-            displs,
-            mpi_particle_type,
-            MPI_COMM_WORLD
-        );
-
-        // Optionally, calculate and print the average velocity
-        float local_avg = avg_velocities();
-        float global_avg = 0.0;
-        MPI_Allreduce(&local_avg, &global_avg, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
-        if (rank == 0 && step % 10 == 0) {
-            printf("Step %d: Avg Velocity = %f\n", step, global_avg);
+        // Count particle types
+        int humans = 0, zombies = 0, immune = 0;
+        #pragma omp parallel for reduction(+:humans, zombies, immune)
+        for (int i = 0; i < sph_num_particles; i++) {
+            if (sph_particles[i].type == HUMAN) humans++;
+            else if (sph_particles[i].type == ZOMBIE) zombies++;
+            else if (sph_particles[i].type == IMMUNE) immune++;
         }
-    }
-#endif
 
-    // Free resources
+        // Print particle counts every 50 steps
+        if (step % 5 == 0) {
+            printf("Step %d: Humans: %d, Zombies: %d, Immune: %d\n", step, humans, zombies, immune);
+        }
+
+        // End simulation if no humans remain
+        if (humans == 0) {
+            printf("No humans remain at step %d.\n", step);
+            if (zombies > immune) {
+                printf("Zombies win with %d remaining!\n", zombies);
+            } else if (immune > zombies) {
+                printf("Immune win with %d remaining!\n", immune);
+            } else {
+                printf("It's a draw between Zombies and Immune!\n");
+            }
+            break;
+        }
+
+        step++;
+    }
+
+
+
+        // End timing
+        clock_t end_time = clock();
+
+        double elapsed_time = (double)(end_time - start_time) / CLOCKS_PER_SEC;
+        printf("Simulation completed in %.2f seconds for %d particles and %d steps.\n",
+            elapsed_time, sph_num_particles, step);
+
     free(sph_particles);
-    MPI_Finalize();
-    return EXIT_SUCCESS;
+    return 0;
 }

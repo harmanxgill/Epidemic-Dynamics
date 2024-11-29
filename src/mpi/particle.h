@@ -1,6 +1,7 @@
 #ifndef PARTICLE_H
 #define PARTICLE_H
 
+#include "sph.h"
 // Enum to define different types of particles in the simulation
 enum ParticleType {
     HUMAN,       // Human particles

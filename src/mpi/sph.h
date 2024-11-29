@@ -35,6 +35,5 @@ void handle_collisions(void);                            // Handle collisions be
 int is_in_domain(float x, float y);                      // Check if a particle is in the domain
 void immune_attack(void);
 void synchronize_particles(int rank, int size);
-void create_mpi_particle_type(MPI_Datatype *mpi_particles);
 
 #endif // SPH_H

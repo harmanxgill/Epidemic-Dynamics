@@ -2,6 +2,7 @@
 #define SPH_H
 
 #include "particle.h"
+#include <mpi.h>
 
 // Constants
 const float SPH_KERNEL_RADIUS = 10.0f;                  // Kernel radius

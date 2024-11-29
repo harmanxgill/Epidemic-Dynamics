@@ -21,7 +21,8 @@ const int VIEW_HEIGHT =  768; // Larger height for non-GUI
 
 // Global Variables
 extern Particle *sph_particles;                          // Array of SPH particles
-extern int sph_num_particles;                            // Current number of particles
+extern int sph_num_particles;    
+extern MPI_Datatype MPI_PARTICLES;                        
 
 // Function Declarations
 void init_zombie_simulation(int humans, int zombies, int immune, int rank, int size);

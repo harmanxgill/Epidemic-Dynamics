@@ -8,6 +8,8 @@
 Particle *sph_particles = NULL;
 int sph_num_particles = 0;
 
+MPI_Datatype MPI_PARTICLES;
+
 /**
  * Initialize the SPH system with random distribution of humans, zombies, and immune particles.
  */

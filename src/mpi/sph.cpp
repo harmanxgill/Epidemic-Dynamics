@@ -194,7 +194,7 @@ int is_in_domain(float x, float y) {
 /**
  * Compute forces for each particle.
  */
-vvoid compute_sph_forces(int rank, int size) {
+void compute_sph_forces(int rank, int size) {
     const float spiky_gradient = -10.0f / (M_PI * pow(SPH_KERNEL_RADIUS, 5.0f));
     const float visc_laplacian = 40.0f / (M_PI * pow(SPH_KERNEL_RADIUS, 5.0f));
     const float small_eps = 1e-6f;

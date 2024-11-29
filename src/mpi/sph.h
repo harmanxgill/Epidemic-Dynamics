@@ -15,8 +15,8 @@ const float SPH_REST_DENSITY = 300.0f;                   // Rest density
 
 const int MAX_PARTICLES = 1000000;                         // Max particles for 
 
-const int BIG_VIEW_WIDTH = 1024;  // Larger width for non-GUI
-const int BIG_VIEW_HEIGHT =  768; // Larger height for non-GUI
+const int VIEW_WIDTH = 1024;  // Larger width for non-GUI
+const int VIEW_HEIGHT =  768; // Larger height for non-GUI
 
 
 // Global Variables

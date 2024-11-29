@@ -13,6 +13,7 @@ int main(int argc, char **argv) {
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
     // Define custom MPI datatype for Particle
+    MPI_Datatype MPI_PARTICLES; 
     MPI_Type_contiguous(sizeof(Particle) / sizeof(float), MPI_FLOAT, &MPI_PARTICLES);
     MPI_Type_commit(&MPI_PARTICLES);
 
